@@ -187,7 +187,7 @@ for R=0:R_step:R_max
     Coef_2D=P_escalar_superior./P_escalar_inferior; %Matrix of the individual correlation of each pixel for the radius R
     % Plot the 2D map of the correlation coefficinet for each R considered
 %     figure
-%     imagesc([1:length(Coef_2D)]*24*fcal,[1:length(Coef_2D)]*24*fcal, Coef_2D); caxis([-1 1]);colorbar;axis image
+%     imagesc([1:length(Coef_2D)]*overlap*fcal,[1:length(Coef_2D)]*overlap*fcal, Coef_2D); caxis([-1 1]);colorbar;axis image
 %     set(gca,'FontSize',18,'DefaultAxesFontName', 'Arial');title(R);xlabel('um');ylabel('um');
     %%%%
 end
@@ -232,7 +232,7 @@ print(fig2,'-dtiff','Correlation_WT');
 % Kymograph where you can see how the correlation coefficient changes as a
 % function of time and space
 fig3=figure
-imagesc(time/60,[1:length(kymograph)]*24*fcal, kymograph); colormap redblue;colorbar;
+imagesc(time/60,[1:length(kymograph)]*overlap*fcal, kymograph); colormap redblue;colorbar;
 caxis([-0.5 1])
 xlabel('Time (h)','FontSize',10,'FontName','Arial','FontWeight','bold')
 ylabel('Correlation coefficient','FontSize',10,'FontName','Arial','FontWeight','bold')
