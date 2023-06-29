@@ -133,7 +133,7 @@ for fileind = vecind	% main loop, for whole file list
 
     iteracion = 0;
     while (iteracion<Niteracion)
-        iteracion = iteracion + 1,
+        iteracion = iteracion + 1;
 
         itt0 = (Niteracion - iteracion + 1)*itt;
         spc0 = (Niteracion - iteracion + 1)*spc;
@@ -207,6 +207,7 @@ for fileind = vecind	% main loop, for whole file list
                 if method==1; c  = zeros(Nfft0); end
                 if method==2; c  = zeros(itt0); end
                 for i=1:nfiles
+                    [H W] = size(ima(1).AA); 
 		    if ndiv == 4;
                         % quadrants
                         if k<=H/2 & m<=W/2	%1
