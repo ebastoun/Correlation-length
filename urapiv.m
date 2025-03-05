@@ -62,18 +62,19 @@ if s2nm ~=1 & s2nm ~= 2
     s2nm = 2;
 end
 
-[filenames,amount,ext] = ReadImDir(dirname,name,'TIF');
-% [filenames,amount,ext] = ReadImDir(dirname,name,'tif');% % % for janice >>> USE THIS LINE AND COMMENT THE ONE ABOVE (use .tif and not .TIF)
-% filenames, amount, ext,
-filenames(1),
-[a,b] = read_pair_of_images(fullfile(dirname,filenames{iref(1)}),fullfile(dirname,filenames{2}),[0 0 0 0],itt,spc,ext);
+% [filenames,amount,ext] = ReadImDir(dirname,name,'TIF');
+[filenames,amount,ext] = ReadImDir(dirname,name,'tif');% % % for janice >>> USE THIS LINE AND COMMENT THE ONE ABOVE (use .tif and not .TIF)
+
+
+filenames = sort(filenames); %%% Now according to alphabetic order, not time when file was written!
+[a,b] = read_pair_of_images(fullfile(dirname,filenames{iref(1)}),fullfile(dirname,filenames{vecind}),[0 0 0 0],itt,spc,ext);
 
 if isempty(a) | isempty(b)
     error('Something wrong with your images')
 end
 
 if ~exist('crop_vector','var')
-    ah = figure;imshow(a),
+    ah = figure;imshow(a);
     axis on,ax=axis; grid on; set(gca,'xtick',[0:itt:ax(2)],'xticklabel',[],...
         'ytick',[0:itt:ax(4)],'yticklabel',[]);
     bh = figure;imshow(b);
@@ -107,6 +108,7 @@ end
 if vecind==0
     vecind = 1:amount;
 end
+
 for fileind = vecind	% main loop, for whole file list
 
     velociInd = velociInd + 1;
@@ -117,12 +119,12 @@ for fileind = vecind	% main loop, for whole file list
         imf(i).B = fullfile(dirname,filenames{fileind});
 
         [ima(i).B]=read_image(imf(i).B,crop_vector,itt,spc,ext);
-	if     ndiv == 4;
-            [ima(i).A1,ima(i).A2,ima(i).A3,ima(i).A4,ima(i).B] = im_interp_correc_quad ...
-              (ima(i).AA,ima(i).B,s2nm,isub,iord,subpR,subpr,npix);
-	elseif ndiv == 1;
-            [ima(i).A,ima(i).B] = im_interp_correc(ima(i).AA,ima(i).B,s2nm,isub,iord,subpR,subpr,npix);
-	end;
+	    if ndiv == 4
+                [ima(i).A1,ima(i).A2,ima(i).A3,ima(i).A4,ima(i).B] = im_interp_correc_quad ...
+                  (ima(i).AA,ima(i).B,s2nm,isub,iord,subpR,subpr,npix);
+        elseif ndiv == 1
+                [ima(i).A,ima(i).B] = im_interp_correc(ima(i).AA,ima(i).B,s2nm,isub,iord,subpR,subpr,npix);
+        end
     end
 
     %    [a1,a2,a3,b1,b2,b3] = read_3_images(imageA1,imageA2,imageA3,imageB1,imageB2,imageB3,crop_vector,itt,spc,ext);
@@ -165,14 +167,14 @@ for fileind = vecind	% main loop, for whole file list
         xind = [1:spc0:sx-itt0+1];
         yind = [1:spc0:sy-itt0+1];
         for k=xind
-            disp(sprintf('\n Working on %d pixels row',k))
+            %disp(sprintf('\n Working on %d pixels row',k))
             for m=yind
                 % Remove following line if you like 'silent' run
                 %               fprintf(1,'.');
 
                 % interpolates from previous iteration
 
-                if (iteracion==1);
+                if (iteracion==1)
                     shiftx = 0;
                     shifty = 0;
                 else
@@ -208,34 +210,34 @@ for fileind = vecind	% main loop, for whole file list
                 if method==2; c  = zeros(itt0); end
                 for i=1:nfiles
                     [H W] = size(ima(1).AA); 
-		    if ndiv == 4;
-                        % quadrants
-                        if k<=H/2 & m<=W/2	%1
-                            aw(i).A = ima(i).A1(vecxa,vecya);
-                        end
-                        if k>H/2 & m<=W/2	%2
-                            aw(i).A = ima(i).A2(vecxa,vecya);
-                        end
-                        if k<=H/2 & m>W/2	%3
-                            aw(i).A = ima(i).A3(vecxa,vecya);
-                        end
-                        if k>H/2 & m>W/2	%4
-                            aw(i).A = ima(i).A4(vecxa,vecya);
-                        end
-		    elseif ndiv == 1;
-                        aw(i).A = ima(i).A(vecxa,vecya);
-		    end;
-
-                    aw(i).B = ima(i).B(vecxa,vecya);
-
-                    if (method == 1)
-                        cw(i).c = cross_correlate(aw(i).A,aw(i).B,Nfft0);
+		            if ndiv == 4
+                                % quadrants
+                                if k<=H/2 & m<=W/2	%1
+                                    aw(i).A = ima(i).A1(vecxa,vecya);
+                                end
+                                if k>H/2 & m<=W/2	%2
+                                    aw(i).A = ima(i).A2(vecxa,vecya);
+                                end
+                                if k<=H/2 & m>W/2	%3
+                                    aw(i).A = ima(i).A3(vecxa,vecya);
+                                end
+                                if k>H/2 & m>W/2	%4
+                                    aw(i).A = ima(i).A4(vecxa,vecya);
+                                end
+		            elseif ndiv == 1
+                                aw(i).A = ima(i).A(vecxa,vecya);
                     end
-                    if (method == 2)
-                        cw(i).c = mqd(aw(i).A,aw(i).B,itt0,itt0);
-                    end
-
-                    c = c + cw(i).c;
+        
+                            aw(i).B = ima(i).B(vecxa,vecya);
+        
+                            if (method == 1)
+                                cw(i).c = cross_correlate(aw(i).A,aw(i).B,Nfft0);
+                            end
+                            if (method == 2)
+                                cw(i).c = mqd(aw(i).A,aw(i).B,itt0,itt0);
+                            end
+        
+                            c = c + cw(i).c;
 
                 end
                 c = c/nfiles;
@@ -342,7 +344,7 @@ for fileind = vecind	% main loop, for whole file list
             w = 3; rad = 1;
             kernel = zeros(2*w+1);
             B = sum(exp(-([-w:w].^2)/(rad^2)))^2;
-            for i=1:2*w+1;
+            for i=1:2*w+1
                 kernel(i,:) =  exp(-((i-w-1)^2+[-w:w].^2)/(rad^2))/B - 1./(2*w+1).^2;
             end
 
@@ -369,10 +371,10 @@ for fileind = vecind	% main loop, for whole file list
 
             % Filtered results will be stored in '.._flt.txt' file
             filt_res = res;
-            % Filtered, but not interpolated:
-            fid = fopen([fullfile(dirname,filenames{fileind}(1:end-4)),'_flt.txt'],'w');
-            fprintf(fid,'%3d %3d %7.4f %7.4f %7.4f\n',filt_res');
-            fclose(fid);
+            % % Filtered, but not interpolated:
+            % fid = fopen([fullfile(dirname,filenames{fileind}(1:end-4)),'_flt.txt'],'w');
+            % fprintf(fid,'%3d %3d %7.4f %7.4f %7.4f\n',filt_res');
+            % fclose(fid);
 
             % Interpolation of the data:
 
@@ -400,7 +402,7 @@ for fileind = vecind	% main loop, for whole file list
 
     % Save results as ASCII (text) files:
     % Final (filtered, interpolated) results
-    fid = fopen([fullfile(dirout,filenames{fileind}(1:end-4)),'.txt'],'w'); fid,
+    fid = fopen([fullfile(dirout,filenames{fileind}(1:end-4)),'.txt'],'w');
     fprintf(fid,'%3d %3d %7.4f %7.4f %7.4f\n',res');
     fclose(fid);
 
@@ -552,13 +554,14 @@ imm = im; %figure, imagesc(im); colorbar,
         ccc=ifftshift(real(ifft2(imfft.*conj(im0fft))));
         %      ccc = mqd(im,im0,H,W);
         %
-        [peak1,peak2,pixi,pixj] = find_displacement(ccc,s2nm); disp(sprintf('peak1=%d ; peak2=%d ; pixi=%d ; pixj=%d',peak1,peak2,pixi,pixj))
+        [peak1,peak2,pixi,pixj] = find_displacement(ccc,s2nm); 
+        %%%%disp(sprintf('peak1=%d ; peak2=%d ; pixi=%d ; pixj=%d',peak1,peak2,pixi,pixj))
 %save cccmatrix.mat imm0 imm im0 im H W imfft im0fft ccc, 
         %
         [disy,disx,s2n] = sub_pixel_velocity(ccc,pixi,pixj,peak1,peak2,0,1,H/2-npix+2,W/2-npix+2,isub,iord,subpR,subpr);
         %
-        disx = disx-W/2-1+npix,,
-        disy = disy-H/2-1+npix,,
+        disx = disx-W/2-1+npix;
+        disy = disy-H/2-1+npix;
         im = interp2(x,y,im,x+disx,y+disy,'spline',0);
         %
         im = real((im));
@@ -669,14 +672,14 @@ imm = im; %figure, imagesc(im); colorbar,
             [disyq3,disxq3,s2n] = sub_pixel_velocity(cccq3,pixiq3,pixjq3,peak1q3,peak2q3,0,1,H/4-npix+2,W/4-npix+2,isub,iord,subpR,subpr);
             [disyq4,disxq4,s2n] = sub_pixel_velocity(cccq4,pixiq4,pixjq4,peak1q4,peak2q4,0,1,H/4-npix+2,W/4-npix+2,isub,iord,subpR,subpr);
             %
-            disxq1 = disxq1-W/4-1+npix,,
-            disyq1 = disyq1-H/4-1+npix,,
-            disxq2 = disxq2-W/4-1+npix,,
-            disyq2 = disyq2-H/4-1+npix,,
-            disxq3 = disxq3-W/4-1+npix,,
-            disyq3 = disyq3-H/4-1+npix,,
-            disxq4 = disxq4-W/4-1+npix,,
-            disyq4 = disyq4-H/4-1+npix,,
+            disxq1 = disxq1-W/4-1+npix;
+            disyq1 = disyq1-H/4-1+npix;
+            disxq2 = disxq2-W/4-1+npix;
+            disyq2 = disyq2-H/4-1+npix;
+            disxq3 = disxq3-W/4-1+npix;
+            disyq3 = disyq3-H/4-1+npix;
+            disxq4 = disxq4-W/4-1+npix;
+            disyq4 = disyq4-H/4-1+npix;
             %
             im1 = interp2(x,y,im,x+disxq1,y+disyq1,'spline',0);
             im2 = interp2(x,y,im,x+disxq2,y+disyq2,'spline',0);
@@ -933,13 +936,13 @@ imm = im; %figure, imagesc(im); colorbar,
         % isub = 1 ==> Log poly order iord
         % isub = 2 ==> poly order iord
 
-	if pixi ==2*ittx | pixj==2*itty; 
+	if pixi ==2*ittx | pixj==2*itty 
            peakx = ittx;
            peaky = itty;
            s2n = Inf;
 	   return; 
 	end
-        if max(abs(c(:))) < 1e-3;
+        if max(abs(c(:))) < 1e-3
             peakx = ittx;
             peaky = itty;
             s2n = Inf;
@@ -959,7 +962,7 @@ imm = im; %figure, imagesc(im); colorbar,
 	    return
         else            % otherwise, calculate the velocity
 
-            if isub ==0;
+            if isub ==0
                 % Sub-pixel displacement definition by means of
                 % Gaussian bell.
 
@@ -986,7 +989,7 @@ imm = im; %figure, imagesc(im); colorbar,
                 if isub == 1; z = log(abs(c)); end
                 if isub == 2; z = c; end
                 kernel = zeros(2*w+1);
-                for i=1:2*w+1;
+                for i=1:2*w+1
                     kernel(i,:) =  exp(-((i-w-1)^2+[-w:w].^2)/(rad^2));
                 end
                 p = polyfitweighted2(x0,y0,z(vecx0,vecy0),iord,kernel);
@@ -1077,22 +1080,22 @@ imm = im; %figure, imagesc(im); colorbar,
         quiver(x(:,1),x(:,2),x(:,3),x(:,4),3,varargin{:});
     end
 
-    function cmqd = mqd(a,b,nx,ny);
+    function cmqd = mqd(a,b,nx,ny)
 
         xmargin = 5;
         ymargin = 5;
 
         cmqd = zeros(nx,ny);
 
-        for iM=-xmargin:xmargin;
+        for iM=-xmargin:xmargin
             vecxa = [xmargin+1:nx-xmargin];
             vecxb = vecxa - iM;
-            for jM=-ymargin:ymargin;
+            for jM=-ymargin:ymargin
                 vecya = [ymargin+1:ny-ymargin];
                 vecyb = vecya - jM;
                 cmqd(iM+nx/2+1,jM+ny/2+1) = sum(sum((a(vecxa,vecya)-b(vecxb,vecyb)).^2));
-            end;
-        end;
+            end
+        end
         cmax = max(max(cmqd));
         jjj = find(cmqd);
         cmqd(jjj) = cmax - cmqd(jjj);
